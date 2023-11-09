@@ -31,7 +31,7 @@ class Client:
 
         >>> client = Client(...)
         >>> client.serialize()
-        '{"type": "client", "id": "...", "status": "SEARCHING", "room": null}'
+        '{"type": "client", "status": "SEARCHING", "room": null}'
         """
         return json.dumps(self._serialize())
 
@@ -41,7 +41,7 @@ class Client:
 
         >>> client = Client(...)
         >>> client._serialize()
-        {'type': 'client', 'id': '...', 'status': 'SEARCHING', 'room': None}
+        {'type': 'client', 'status': 'SEARCHING', 'room': None}
         """
         return {
             "type": "client",
