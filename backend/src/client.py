@@ -19,23 +19,15 @@ class Client:
         self.socket: t.Final = socket
         self.room_name: t.Optional[str] = None
 
-    async def send(self, data: wt.Data) -> None:
+    async def send(self, data: wt.Data | dict[str, t.Any]) -> None:
         """
         Send data to client.
         """
+        if isinstance(data, dict):
+            data = json.dumps(data)
         await self.socket.send(data)
 
-    def serialize(self) -> str:
-        """
-        Return serialized client status for sending to client.
-
-        >>> client = Client(...)
-        >>> client.serialize()
-        '{"type": "client", "status": "SEARCHING", "room": null}'
-        """
-        return json.dumps(self._serialize())
-
-    def _serialize(self) -> dict[str, t.Optional[str]]:
+    def serialize(self) -> dict[str, t.Optional[str]]:
         """
         Return python's dict of serialized client status.
 

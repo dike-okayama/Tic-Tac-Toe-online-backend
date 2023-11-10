@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import json
 import typing as t
 
 import backend.typing as bt
@@ -109,16 +108,7 @@ class TicTacToe:
             [BLANK, BLANK, BLANK],
         ]
 
-    def serialize(self) -> str:
-        """
-        Return json string of serialized game status.
-        >>> game = Game(...)
-        >>> game.serialize()
-        '{"type": "game", "board": [[-1, -1, -1], [-1, -1, -1], [-1, -1, -1]], "elapsedTurn": 0, "currentTurn": 0, "isEnded": false}'  # noqa: E501
-        """
-        return json.dumps(self._serialize())
-
-    def _serialize(self) -> dict[str, t.Optional[str | int | list[list[int]] | bool]]:
+    def serialize(self) -> dict[str, t.Optional[str | int | list[list[int]] | bool]]:
         """
         Return python's dict of serialized game status.
         >>> game = Game(...)

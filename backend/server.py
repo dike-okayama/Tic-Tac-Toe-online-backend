@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import enum
 import logging
 import typing as t
 import unicodedata
@@ -20,6 +21,12 @@ logger.addHandler(handler)
 
 rooms: dict[str, Room] = {}
 query: bt.QueryType
+
+
+class ErrorMessage(enum.Enum):
+    ALREADY_EXIST = "The room already exists."
+    NOT_EXIST = "The room does not exist."
+    ALREADY_FULL = "The room is already full."
 
 
 async def handle_client(websocket: websockets.server.WebSocketServerProtocol):
@@ -43,7 +50,7 @@ async def handle_client(websocket: websockets.server.WebSocketServerProtocol):
                     # create a new room
                     case "create":
                         if room_name in rooms:
-                            await client.send(client.serialize())
+                            await client.send(client.serialize() | {"error": ErrorMessage.ALREADY_EXIST.value})
                             continue
 
                         room = Room(name=room_name, client_id=client)
@@ -57,8 +64,12 @@ async def handle_client(websocket: websockets.server.WebSocketServerProtocol):
                     case "join":
                         room = rooms.get(room_name)
 
-                        if room is None or not room.waiting:
-                            await client.send(client.serialize())
+                        if room is None:
+                            await client.send(client.serialize() | {"error": ErrorMessage.NOT_EXIST.value})
+                            continue
+
+                        if not room.waiting:
+                            await client.send(client.serialize() | {"error": ErrorMessage.ALREADY_FULL.value})
                             continue
 
                         client.room_name = room_name
