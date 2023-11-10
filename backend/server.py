@@ -25,9 +25,13 @@ query: bt.QueryType
 async def handle_client(websocket: websockets.server.WebSocketServerProtocol):
     # connected
     client: t.Final = Client(socket=websocket)
+    logger.info(f"connected: {client}")
 
     async for message in websocket:
         message = str(message)
+        logger.info(f"{client}> {message}")
+        logger.debug(f"{client.status = }")
+        logger.debug(f"{client.room_name = }")
         logger.debug(f"{rooms = }")
 
         match client.status:
@@ -127,3 +131,4 @@ async def handle_client(websocket: websockets.server.WebSocketServerProtocol):
     # disconnected
     if client.room_name in rooms:
         del rooms[client.room_name]
+    logger.info(f"disconnected: {client}")
