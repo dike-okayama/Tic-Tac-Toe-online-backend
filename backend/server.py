@@ -78,7 +78,7 @@ async def handle_client(websocket: websockets.server.WebSocketServerProtocol):
                         for client_ in room:
                             client_.status = bt.ClientStatus.PLAYING
                             await client_.send(client_.serialize())
-                            await client_.send(room.game.serialize())
+                            await client_.send(room.serialize(target=client_))
 
                     # invalid query
                     case _:
@@ -115,14 +115,14 @@ async def handle_client(websocket: websockets.server.WebSocketServerProtocol):
                         game.put((y, x))
 
                         for client_ in room:
-                            await client_.send(game.serialize())
+                            await client_.send(room.serialize(target=client_))
 
                     # restart game
                     case "restart":
                         game.reset()
 
                         for client_ in room:
-                            await client_.send(game.serialize())
+                            await client_.send(room.serialize(target=client_))
 
                     # finish game and leave the room
                     case "exit":

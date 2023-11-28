@@ -31,3 +31,14 @@ class Room:
         yield self.cross
         if self.nought is not None:
             yield self.nought
+
+    def serialize(self, target: t.Optional[Client] = None):
+        """
+        Return python's dict of serialized game status wrapped in room status.
+        """
+        game_status = self.game.serialize()
+        if target == self.cross:
+            game_status["isMyTurn"] = game_status["currentTurn"] == 0
+        if target == self.nought:
+            game_status["isMyTurn"] = game_status["currentTurn"] == 1
+        return game_status
