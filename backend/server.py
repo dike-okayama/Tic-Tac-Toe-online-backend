@@ -141,5 +141,5 @@ async def handle_client(websocket: websockets.server.WebSocketServerProtocol):
 
     # disconnected
     if client.room_name in rooms:
-        del rooms[client.room_name]
+        rooms.pop(client.room_name)
     logger.info(f"disconnected: {client}")
