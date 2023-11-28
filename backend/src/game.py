@@ -58,17 +58,22 @@ class TicTacToe:
 
         return False
 
-    def get_result(self) -> str:
+    def get_result(self) -> t.Literal[-1, 0, 1, 2]:
         """
         Return the result of the game.
+
+        -1: not ended
+        0: cross win
+        1: nought win
+        2: draw
         """
         if not self.is_ended():
-            return "not ended"
+            return -1
         for target_line in self.LINES:
             line = tuple(self.board[y][x] for y, x in target_line)
             if line in self.HITS:
-                return f"{line[0].value} win"
-        return "draw"
+                return line[0].value
+        return 2
 
     def put(self, position: bt.PositionType) -> bool:
         """

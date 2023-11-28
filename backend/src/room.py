@@ -37,8 +37,22 @@ class Room:
         Return python's dict of serialized game status wrapped in room status.
         """
         game_status = self.game.serialize()
-        if target == self.cross:
-            game_status["isMyTurn"] = game_status["currentTurn"] == 0
-        if target == self.nought:
-            game_status["isMyTurn"] = game_status["currentTurn"] == 1
+
+        if target is None:
+            return game_status
+
+        target_value = int(target != self.cross)  # 0: cross, 1: nought
+        game_status["isMyTurn"] = self.game.current_turn.value == target_value
+
+        if self.game.is_ended():
+            match self.game.get_result():
+                case -1:
+                    pass
+                case 0:
+                    game_status["result"] = "You Win!" if target_value == 0 else "You Lose"
+                case 1:
+                    game_status["result"] = "You Win!" if target_value == 1 else "You Lose"
+                case 2:
+                    game_status["result"] = "Draw"
+
         return game_status
