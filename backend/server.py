@@ -121,6 +121,9 @@ async def handle_client(websocket: websockets.server.WebSocketServerProtocol):
                     case "restart":
                         game.reset()
 
+                        assert room.nought is not None
+                        room.cross, room.nought = room.nought, room.cross
+
                         for client_it in room:
                             await client_it.send(room.serialize(target=client_it))
 
