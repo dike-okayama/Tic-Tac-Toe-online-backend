@@ -53,7 +53,7 @@ async def handle_client(websocket: websockets.server.WebSocketServerProtocol):
                             await client.send(client.serialize() | {"error": ErrorMessage.ALREADY_EXIST.value})
                             continue
 
-                        room = Room(name=room_name, client_id=client)
+                        room = Room(name=room_name, client=client)
                         rooms[room_name] = room
 
                         client.room_name = room_name
@@ -75,10 +75,10 @@ async def handle_client(websocket: websockets.server.WebSocketServerProtocol):
                         client.room_name = room_name
                         room.nought = client
 
-                        for client_ in room:
-                            client_.status = bt.ClientStatus.PLAYING
-                            await client_.send(client_.serialize())
-                            await client_.send(room.serialize(target=client_))
+                        for client_it in room:
+                            client_it.status = bt.ClientStatus.PLAYING
+                            await client_it.send(client_it.serialize())
+                            await client_it.send(room.serialize(target=client_it))
 
                     # invalid query
                     case _:
@@ -103,7 +103,7 @@ async def handle_client(websocket: websockets.server.WebSocketServerProtocol):
 
             case bt.ClientStatus.PLAYING:
                 assert client.room_name is not None
-                query, *yx = message.split()  # expected `(put|restart|finish) (\d \d)?`
+                query, *yx = message.split()  # expected `(put|restart|exit) (\d \d)?`
 
                 room = rooms[client.room_name]
                 game = room.game
@@ -114,24 +114,24 @@ async def handle_client(websocket: websockets.server.WebSocketServerProtocol):
                         y, x = map(int, yx)
                         game.put((y, x))
 
-                        for client_ in room:
-                            await client_.send(room.serialize(target=client_))
+                        for client_it in room:
+                            await client_it.send(room.serialize(target=client_it))
 
                     # restart game
                     case "restart":
                         game.reset()
 
-                        for client_ in room:
-                            await client_.send(room.serialize(target=client_))
+                        for client_it in room:
+                            await client_it.send(room.serialize(target=client_it))
 
                     # finish game and leave the room
                     case "exit":
                         del rooms[client.room_name]
 
-                        for client_ in room:
-                            client_.status = bt.ClientStatus.SEARCHING
-                            client_.room_name = None
-                            await client_.send(client_.serialize())
+                        for client_it in room:
+                            client_it.status = bt.ClientStatus.SEARCHING
+                            client_it.room_name = None
+                            await client_it.send(client_it.serialize())
 
                         del room
 

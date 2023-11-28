@@ -11,9 +11,9 @@ class Room:
     Room class for managing clients and game.
     """
 
-    def __init__(self, name: str, client_id: Client):
+    def __init__(self, name: str, client: Client):
         self.name: t.Final = name
-        self.cross: Client = client_id
+        self.cross: Client = client
         self.nought: t.Optional[Client] = None
         self.game: t.Final = TicTacToe()
 
