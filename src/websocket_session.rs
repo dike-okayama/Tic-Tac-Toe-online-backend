@@ -11,10 +11,19 @@ use uuid::Uuid;
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
+#[derive(Debug)]
+enum SessionStatus {
+    Searching,
+    Waiting,
+    Playing,
+}
+
 pub struct WebsocketSession {
     id: Uuid,
     addr: Addr<WebsocketActor>,
     hb: Instant,
+    status: SessionStatus,
+    room_name: Option<String>,
 }
 
 impl WebsocketSession {
@@ -23,6 +32,8 @@ impl WebsocketSession {
             id: Uuid::new_v4(),
             addr,
             hb: Instant::now(),
+            status: SessionStatus::Searching,
+            room_name: None,
         }
     }
 
@@ -61,7 +72,10 @@ impl Actor for WebsocketSession {
     }
 
     fn stopping(&mut self, _: &mut Self::Context) -> Running {
-        self.addr.do_send(Disconnect { id: self.id });
+        self.addr.do_send(Disconnect {
+            id: self.id,
+            room_name: self.room_name.clone(),
+        });
         Running::Stop
     }
 }
@@ -84,10 +98,6 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebsocketSession 
             ws::Message::Pong(_) => {
                 self.hb = Instant::now();
             }
-            ws::Message::Text(s) => self.addr.do_send(ClientMessage {
-                id: self.id,
-                msg: s.trim().to_string(),
-            }),
             ws::Message::Binary(bin) => ctx.binary(bin),
             ws::Message::Close(_) => {
                 ctx.stop();
@@ -96,6 +106,38 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebsocketSession 
                 ctx.stop();
             }
             ws::Message::Nop => (),
+            ws::Message::Text(s) => {
+                let query = s.split(' ').collect::<Vec<&str>>();
+
+                match self.status {
+                    SessionStatus::Searching => {
+                        if !(query[0] == "create" || query[0] == "join") {
+                            return;
+                        }
+                    }
+                    SessionStatus::Waiting => {
+                        if query[0] != "leave" {
+                            return;
+                        }
+                    }
+                    SessionStatus::Playing => {
+                        if !(query[0] == "put" || query[0] == "restart" || query[0] == "exit") {
+                            return;
+                        }
+                    }
+                }
+
+                self.addr.do_send(ClientMessage {
+                    id: self.id,
+                    room_name: if self.room_name.is_none() {
+                        None
+                    } else {
+                        Some(self.room_name.clone().unwrap())
+                    },
+                    query: query[0].to_string(),
+                    body: query[1].to_string(),
+                })
+            }
         }
     }
 }
@@ -104,6 +146,23 @@ impl Handler<WebsocketMessage> for WebsocketSession {
     type Result = ();
 
     fn handle(&mut self, msg: WebsocketMessage, ctx: &mut Self::Context) {
-        ctx.text(msg.0);
+        if let Some(ref status_message) = msg.status_message {
+            match status_message.status.as_str() {
+                "Searching" => {
+                    self.status = SessionStatus::Searching;
+                }
+                "Waiting" => {
+                    self.status = SessionStatus::Waiting;
+                }
+                "Playing" => {
+                    self.status = SessionStatus::Playing;
+                }
+                _ => (),
+            }
+            if let Some(room_name) = status_message.room_name.to_owned() {
+                self.room_name = Some(room_name);
+            }
+        }
+        ctx.text(serde_json::to_string(&msg).unwrap());
     }
 }
