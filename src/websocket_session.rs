@@ -11,7 +11,6 @@ use uuid::Uuid;
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
-#[derive(Debug)]
 enum SessionStatus {
     Searching,
     Waiting,
