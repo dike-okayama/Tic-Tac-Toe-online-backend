@@ -1,31 +1,18 @@
 # Tic-Tac-Toe-online-backend
 
-Backend server for Simple two-player online Tic-tac-toe.
-
-## Setup
-
-```bash
-pip3 install -r requirements.txt
-```
+Backend server for [Simple two-player online Tic-tac-toe](https://github.com/okayama-daiki/Tic-Tac-Toe-online).
 
 ## Usage
 
-To start the backend server, run the following command in the project root.
+To start the backend server, execute the following command.
 
 ```bash
-python3 -m backend
+cargo run
 ```
 
-## Test
-
-You need to install pip packages related to pytest beforehand.
+The server can also be started as optimal by the build step.
 
 ```bash
-pip3 install pytest pytest-asyncio
-```
-
-Then, run the following command in the project root.
-
-```bash
-pytest
+cargo build --release
+./target/release/tic-tac-toe-online-backend
 ```
