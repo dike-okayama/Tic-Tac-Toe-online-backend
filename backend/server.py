@@ -144,5 +144,11 @@ async def handle_client(websocket: websockets.server.WebSocketServerProtocol):
 
     # disconnected
     if client.room_name in rooms:
+        for client_it in rooms[client.room_name]:
+            if client is not client_it:
+                client_it.status = bt.ClientStatus.SEARCHING
+                client_it.room_name = None
+                await client_it.send(client_it.serialize())
         rooms.pop(client.room_name)
+
     logger.info(f"disconnected: {client}")
