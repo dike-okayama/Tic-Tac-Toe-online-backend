@@ -164,6 +164,7 @@ impl Handler<ClientMessage> for WebsocketActor {
             "restart" => {
                 let room_name = &msg.room_name.unwrap();
                 if let Some((members, game)) = self.rooms.get_mut(room_name) {
+                    members.reverse();
                     let cross_id = members[0];
                     game.reset();
                     for id in members.clone().iter() {
