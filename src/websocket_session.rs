@@ -135,7 +135,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebsocketSession 
                         Some(self.room_name.clone().unwrap())
                     },
                     query: query[0].to_string(),
-                    body: query[1].to_string(),
+                    body: query[1..].join(" "),
                 })
             }
         }
