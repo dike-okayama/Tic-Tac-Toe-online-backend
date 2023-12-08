@@ -35,6 +35,11 @@ impl TicTacToe {
                 return true;
             };
         }
+
+        if self.elapsed_turn == 9 {
+            return true;
+        }
+
         false
     }
 
