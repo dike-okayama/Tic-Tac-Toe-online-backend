@@ -1,6 +1,6 @@
 use crate::game::TicTacToe;
 use crate::messages::{
-    ClientMessage, Connect, Disconnect, GameMessage, StatusMessage, WebsocketMessage,
+    ClientMessage, Connect, Disconnect, GameMessage, MessageType, StatusMessage, WebsocketMessage,
 };
 use actix::{Actor, Context, Handler, Recipient};
 use std::collections::HashMap;
@@ -24,11 +24,10 @@ impl WebsocketActor {
             socket_recipient.do_send(WebsocketMessage {
                 type_: "Status".to_string(),
                 error,
-                status_message: Some(StatusMessage {
+                message: MessageType::Status(StatusMessage {
                     status: status.to_owned(),
-                    room_name: room_name.to_owned(),
+                    room_name,
                 }),
-                game_message: None,
             });
         }
     }
@@ -45,8 +44,7 @@ impl WebsocketActor {
             socket_recipient.do_send(WebsocketMessage {
                 type_: "Game".to_string(),
                 error: None, // for the future implementation
-                status_message: None,
-                game_message: Some(GameMessage {
+                message: MessageType::Game(GameMessage {
                     board: game.board,
                     elapsed_turn: game.elapsed_turn,
                     is_my_turn: to_cross == (game.elapsed_turn % 2 == 0),

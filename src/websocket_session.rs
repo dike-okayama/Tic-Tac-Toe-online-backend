@@ -1,4 +1,4 @@
-use crate::messages::{ClientMessage, Connect, Disconnect, WebsocketMessage};
+use crate::messages::{ClientMessage, Connect, Disconnect, MessageType, WebsocketMessage};
 use crate::websocket_actor::WebsocketActor;
 use actix::{
     fut, Actor, ActorContext, ActorFutureExt, Addr, AsyncContext, ContextFutureSpawner, Handler,
@@ -145,22 +145,25 @@ impl Handler<WebsocketMessage> for WebsocketSession {
     type Result = ();
 
     fn handle(&mut self, msg: WebsocketMessage, ctx: &mut Self::Context) {
-        if let Some(ref status_message) = msg.status_message {
-            match status_message.status.as_str() {
-                "Searching" => {
-                    self.status = SessionStatus::Searching;
+        match &msg.message {
+            MessageType::Status(status_message) => {
+                match status_message.status.as_str() {
+                    "Searching" => {
+                        self.status = SessionStatus::Searching;
+                    }
+                    "Waiting" => {
+                        self.status = SessionStatus::Waiting;
+                    }
+                    "Playing" => {
+                        self.status = SessionStatus::Playing;
+                    }
+                    _ => (),
                 }
-                "Waiting" => {
-                    self.status = SessionStatus::Waiting;
+                if let Some(ref room_name) = status_message.room_name {
+                    self.room_name = Some(room_name.to_owned());
                 }
-                "Playing" => {
-                    self.status = SessionStatus::Playing;
-                }
-                _ => (),
             }
-            if let Some(room_name) = status_message.room_name.to_owned() {
-                self.room_name = Some(room_name);
-            }
+            MessageType::Game(_) => {}
         }
         ctx.text(serde_json::to_string(&msg).unwrap());
     }

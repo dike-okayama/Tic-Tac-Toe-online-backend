@@ -8,8 +8,13 @@ use uuid::Uuid;
 pub struct WebsocketMessage {
     pub type_: String,
     pub error: Option<String>,
-    pub status_message: Option<StatusMessage>,
-    pub game_message: Option<GameMessage>,
+    pub message: MessageType,
+}
+
+#[derive(Serialize)]
+pub enum MessageType {
+    Status(StatusMessage),
+    Game(GameMessage),
 }
 
 #[derive(Serialize)]
